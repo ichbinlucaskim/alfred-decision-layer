@@ -23,6 +23,30 @@ This prototype implements the **Execution Decision Layer** — the guardrail tha
 
 ---
 
+## Rejected Design Alternatives
+
+### Why not pure LLM end-to-end?
+
+Policy enforcement becomes probabilistic. A jailbreak or edge-case prompt could cause an irreversible action. Hard safety constraints must never be delegated to inference.
+
+### Why not pure rule-based classification?
+
+Cannot handle linguistic ambiguity or conversation context. *"Yep, send it"* after a hold instruction is indistinguishable from *"Yep, send it"* after a clean approval without reading history. Rules cannot do this; the LLM can.
+
+### Why not let the LLM compute its own signals?
+
+Circular: asking the model to compute its own inputs removes auditability and makes failure modes harder to isolate. When contradiction detection lives in the LLM prompt, it competes with all other reasoning. As a pre-computed signal, it arrives as a fact.
+
+### Why `CONFIRM` as the universal failure fallback — not `REFUSE` or `CLARIFY`?
+
+- `REFUSE` is too aggressive: a timeout doesn't mean the action is bad — it means the system failed. Blocking on infra instability destroys usability.
+- `CLARIFY` is dishonest: asking the user a question when the real problem is a parse error misdirects blame.
+- `EXECUTE_SILENT` is obviously wrong: acting without judgment under uncertainty is the worst possible failure mode.
+
+`CONFIRM` is the only state that doesn't execute irreversibly, doesn't falsely attribute failure to user ambiguity, and keeps the user in control.
+
+---
+
 ## Architecture
 
 ### The Core Problem with Pure LLM
