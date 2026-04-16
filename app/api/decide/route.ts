@@ -166,6 +166,9 @@ export async function POST(req: NextRequest) {
       err instanceof Error &&
       (err.name === "AbortError" || err.message.includes("abort"));
 
+    const failureMode: "timeout" | "malformed" = isTimeout ? "timeout" : "malformed";
+    const errorMsg = isTimeout ? "LLM call timed out after 25s" : String(err);
+
     const response: DecideResponse = {
       input: actionInput,
       signals,
@@ -173,14 +176,14 @@ export async function POST(req: NextRequest) {
       rawLLMOutput,
       parseResult: {
         success: false,
-        error: isTimeout ? "LLM call timed out after 10s" : String(err),
+        error: errorMsg,
         fallback: CONFIRM_FALLBACK,
       },
       decision: "CONFIRM",
       rationale: CONFIRM_FALLBACK.rationale,
       confidence: 0,
       durationMs: Date.now() - start,
-      failureMode: "timeout",
+      failureMode,
       shortCircuit: null,
     };
     return NextResponse.json(response);
