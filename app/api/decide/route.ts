@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+
+export const maxDuration = 30;
 import { extractSignals } from "@/lib/signals";
 import { buildPrompt, SYSTEM_PROMPT } from "@/lib/prompt";
 import { parseLLMOutput, CONFIRM_FALLBACK } from "@/lib/parser";
@@ -121,7 +123,7 @@ export async function POST(req: NextRequest) {
 
   // Real LLM call with 10s timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10_000);
+  const timeoutId = setTimeout(() => controller.abort(), 25_000);
 
   try {
     const message = await client.messages.create(
